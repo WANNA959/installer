@@ -421,6 +421,7 @@ function config-docker()
 
   apt-get update
   apt-get install -y nvidia-docker2
+  apt-get install nvidia-container-runtime
 
   ## kubernetes >= 1.22 only supports systemd
   mkdir -p /etc/docker
@@ -442,8 +443,9 @@ EOF
   
   # echo "}" >> /etc/docker/daemon.json
   systemctl daemon-reload
+  systemctl restart docker
 
-  start-service docker kubelet
+  start-service kubelet
 }
 
 function config-containerd()
