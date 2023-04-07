@@ -38,12 +38,12 @@ ubuntu_kuberentes_gpg="https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg
 
 #kube_fip="120.46.180.58"                  # if you deploy Kubernetes on a public cloud, the fip is public IP
 kube_pod_subnet="10.244.0.0/16"
-kube_version="1.26.0"
+kube_version="1.22.6"
 
-kube_runtime="containerd"                # containerd or docker
-kube_runtime_version="1.6.16"             # containerd
-#kube_runtime="docker"                     # containerd or docker
-#kube_runtime_version="20.10.8"            # docker
+# kube_runtime="containerd"                # containerd or docker
+# kube_runtime_version="1.6.16"             # containerd
+kube_runtime="docker"                     # containerd or docker
+kube_runtime_version="23.0.1"            # docker
 
                       
 
@@ -414,9 +414,22 @@ function config-docker()
 {
   ## kubernetes >= 1.22 only supports systemd
   mkdir -p /etc/docker
-  echo "{" > /etc/docker/daemon.json
-  echo "  \"exec-opts\": [\"native.cgroupdriver=systemd\"]" >> /etc/docker/daemon.json
-  echo "}" >> /etc/docker/daemon.json
+cat <<EOF > /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "default-runtime": "nvidia",
+  "runtimes": {
+      "nvidia": {
+          "path": "/usr/bin/nvidia-container-runtime",
+          "runtimeArgs": []
+      }
+  }
+}
+EOF
+  # echo "{" > /etc/docker/daemon.json
+  # echo "  \"exec-opts\": [\"native.cgroupdriver=systemd\"]" >> /etc/docker/daemon.json
+  
+  # echo "}" >> /etc/docker/daemon.json
   systemctl daemon-reload
 
   start-service docker kubelet
